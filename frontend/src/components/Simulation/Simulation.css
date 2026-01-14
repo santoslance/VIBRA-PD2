@@ -1,0 +1,9 @@
+.simulation {
+  width: 100%;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: flex-start; 
+  gap: 30px;
+  padding: 30px 40px;
+}

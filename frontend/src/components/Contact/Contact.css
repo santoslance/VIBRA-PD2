@@ -1,0 +1,79 @@
+/* =========================
+   CONTACT SECTION
+========================= */
+
+.contact {
+  min-height: 100vh;
+  padding-top: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 100px;
+}
+
+.contact-header h2 {
+  font-size: 100px;
+  letter-spacing: 6px;
+  font-weight: 600;
+}
+
+.contact-highlight {
+  color: #f4c46d;
+}
+
+.contact-subtitle {
+  margin-top: 20px;
+  font-size: 24px;
+  letter-spacing: 10px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* =========================
+   CONTACT BOX
+========================= */
+
+.contact-box {
+  width: 75%;
+  max-width: 1100px;
+  background: #2f2f2f;
+  padding: 60px 80px;
+}
+
+.contact-box h3 {
+  text-align: center;
+  font-size: 36px;
+  letter-spacing: 4px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+/* Divider line */
+.divider {
+  height: 1px;
+  background: #ffffff;
+  width: 100%;
+  margin-bottom: 50px;
+}
+
+/* =========================
+   CONTACT DETAILS
+========================= */
+
+.contact-info p {
+  font-size: 22px;
+  letter-spacing: 6px;
+  margin-bottom: 40px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.contact-info span {
+  font-weight: 500;
+}

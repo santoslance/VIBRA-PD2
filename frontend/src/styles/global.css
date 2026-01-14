@@ -1,0 +1,55 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Arial", sans-serif;
+  color: #ffffff;
+
+  background: linear-gradient(
+    270deg,
+    #270664,
+    #8e30a0,
+    #dd72be,
+    #f1ad0f
+  );
+
+  background-size: 600% 600%;
+  animation: gradientMove 10s ease infinite;
+
+  min-height: 100vh;
+}
+
+
+section {
+  min-height: 100vh;
+  padding: 120px 80px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+main {
+  padding-top: 80px;
+}
+
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

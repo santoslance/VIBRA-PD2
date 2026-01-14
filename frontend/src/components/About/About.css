@@ -1,0 +1,84 @@
+.about {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-top: 120px;
+
+  display: grid;
+  grid-template-columns: 1fr;
+  row-gap: 120px;
+}
+
+/* CENTER CONTENT */
+.about-center {
+  text-align: center;
+}
+
+.about h2 {
+  font-size: 100px;
+  margin-bottom: 20px;
+  letter-spacing: 4px;
+}
+
+.about-highlight {
+  color: #f4c46d;
+}
+
+.subtitle {
+  font-size: 40px;
+  letter-spacing: 10px;
+  margin-bottom: 150px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* LEFT CONTENT */
+.about-left {
+ transform: translateX(-10px);
+}
+
+.about-left h3 {
+  font-size: 50px;
+  margin-top: -50px;
+  margin-bottom: 50px;
+  letter-spacing: 4px;
+
+  animation: slideFadeInLeft 1s ease-out forwards;
+}
+
+
+.about-desc {
+  font-size: 28px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  line-height: 1.6;
+  margin-bottom: 30px;
+
+  opacity: 0;
+  animation: slideFadeInText 1s ease-out forwards;
+  animation-delay: 0.35s;
+}
+
+
+/* =========================
+   INTRO ANIMATIONS
+========================= */
+
+@keyframes slideFadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-650px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-550px);
+  }
+}
+
+@keyframes slideFadeInText {
+  from {
+    opacity: 0;
+    transform: translateX(-600px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-550px);
+  }
+}
