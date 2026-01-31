@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "./LeftPanel.css";
 
 const SPREADSHEET_ID = "1OAfQI6MwheL6wIes1EhGjak3G1jSVLFGppmzqTL9MWQ";
@@ -72,7 +72,7 @@ const dominantTreatmentName = (applied = [], treatments = [], fallbackName = "")
 const ZONE_COLORS = {
   hotspot: "#b22222",
   deadspot: "#4292c6",
-  neutral: "#2a9d8f",
+  neutral: "#ffffffff",
 };
 
 // blend from -> to by t (0..1)
@@ -118,7 +118,7 @@ const LeftPanel = ({
 
     for (const layerName in layers) {
       const gid = layers[layerName];
-      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`;
+      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`; 
 
       const res = await fetch(url);
       const text = await res.text();
@@ -129,17 +129,19 @@ const LeftPanel = ({
 
       const rows = json.table.rows;
 
-      rows.slice(1).forEach((row) => {
+      rows.forEach((row) => {
         if (!row.c) return;
 
-        combined.push({
-          angle: row.c[0]?.v ?? "",
-          db: row.c[1]?.v ?? "",
-          ultrasonic: row.c[2]?.v ?? "",
-          rt60: row.c[3]?.v ?? "",
-          classification: row.c[4]?.v ?? "",
-          layer: layerName,
-        });
+
+      combined.push({
+        angle: row.c[0]?.v ?? "",          // angle
+        db: row.c[1]?.v ?? "",             // db
+        rt60: row.c[2]?.v ?? "",           // reverberation = RT60 ✅
+        ultrasonic: row.c[3]?.v ?? "",     // ultrasonicValue ✅
+        classification: row.c[4]?.v ?? "", // Hot Spot / Dead Spot / Neutral
+        layer: layerName,                  // virtual layer from sheet tab
+      });
+
       });
     }
 

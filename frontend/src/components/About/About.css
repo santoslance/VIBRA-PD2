@@ -1,84 +1,145 @@
 .about {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding-top: 120px;
-
+  padding: 80px 24px 60px;
   display: grid;
   grid-template-columns: 1fr;
-  row-gap: 120px;
+  row-gap: 50px;
 }
 
-/* CENTER CONTENT */
+/* =========================
+   HERO (TITLE + SUBTITLE)
+========================= */
+
 .about-center {
   text-align: center;
 }
 
-.about h2 {
-  font-size: 100px;
-  margin-bottom: 20px;
-  letter-spacing: 4px;
+.about-hero {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px; /* ⬅️ controls spacing between title, line, subtitle */
+}
+
+.about-title {
+  font-size: clamp(40px, 4.8vw, 72px);
+  letter-spacing: 3px;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 .about-highlight {
   color: #f4c46d;
 }
 
+/* subtle divider / glow line */
+.about-divider {
+  width: min(420px, 60vw);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(244, 196, 109, 0) 0%,
+    rgba(244, 196, 109, 0.9) 50%,
+    rgba(244, 196, 109, 0) 100%
+  );
+  box-shadow: 0 0 18px rgba(244, 196, 109, 0.45);
+  opacity: 0;
+  transform: scaleX(0.7);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
 .subtitle {
-  font-size: 40px;
-  letter-spacing: 10px;
-  margin-bottom: 150px;
+  font-size: clamp(15px, 1.5vw, 22px);
+  letter-spacing: 6px;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition-delay: 0.12s;
+
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
-/* LEFT CONTENT */
+/* animate title + divider + subtitle together */
+.about-center.visible .about-title {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.about-center.visible .about-divider {
+  opacity: 1;
+  transform: scaleX(1);
+  transition-delay: 0.08s;
+}
+
+.about-center.visible .subtitle {
+  opacity: 0.9;
+  transform: translateY(0);
+}
+
+/* =========================
+   BODY CONTENT
+========================= */
+
 .about-left {
- transform: translateX(-10px);
+  max-width: 860px;
 }
 
 .about-left h3 {
-  font-size: 50px;
-  margin-top: -50px;
-  margin-bottom: 50px;
-  letter-spacing: 4px;
-
-  animation: slideFadeInLeft 1s ease-out forwards;
-}
-
-
-.about-desc {
-  font-size: 28px;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  line-height: 1.6;
-  margin-bottom: 30px;
+  font-size: clamp(24px, 2.6vw, 38px);
+  margin: 0 0 14px;
+  letter-spacing: 2px;
 
   opacity: 0;
-  animation: slideFadeInText 1s ease-out forwards;
-  animation-delay: 0.35s;
+  transform: translateX(-40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
+.about-desc {
+  font-size: clamp(15px, 1.1vw, 18px);
+  line-height: 1.75;
+  margin: 0 0 16px;
+
+  text-align: justify;
+  text-justify: inter-word;
+
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.about-left.visible h3 {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.about-left.visible .about-desc {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.about-left.visible .about-desc:nth-of-type(1) {
+  transition-delay: 0.12s;
+}
+
+.about-left.visible .about-desc:nth-of-type(2) {
+  transition-delay: 0.25s;
+}
 
 /* =========================
-   INTRO ANIMATIONS
+   RESPONSIVE SAFETY
 ========================= */
 
-@keyframes slideFadeInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-650px);
+@media (max-width: 768px) {
+  .about {
+    padding: 60px 18px 45px;
   }
-  to {
-    opacity: 1;
-    transform: translateX(-550px);
-  }
-}
 
-@keyframes slideFadeInText {
-  from {
-    opacity: 0;
-    transform: translateX(-600px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-550px);
+  .about-desc {
+    text-align: left;
   }
 }

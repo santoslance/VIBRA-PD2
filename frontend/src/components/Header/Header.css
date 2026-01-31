@@ -2,7 +2,7 @@
   position: fixed;
   top: 0;
   width: 100%;
-  height: 140px;
+  height: 80px;
   padding: 0 40px;
   display: flex;
   justify-content: space-between;
@@ -18,7 +18,7 @@
 }
 
 .logo img {
-  height: 200px;
+  height: 150px;
   width: auto;
   margin-left: -20px;
 }
@@ -35,8 +35,8 @@ nav button {
   background: none;
   border: none;
   color: white;
-  margin-left: 30px;
-  font-size: 30px;
+  margin-left: 25px;
+  font-size: 25px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   cursor: pointer;
   padding: 10px;

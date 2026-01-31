@@ -8,6 +8,10 @@ const Contact = () => {
         <h2>
           <span className="contact-highlight">CONTACT</span> US
         </h2>
+
+        {/* ✅ glow divider under CONTACT US */}
+        <div className="contact-divider" />
+
         <p className="contact-subtitle">GET IN TOUCH</p>
       </div>
 
@@ -21,7 +25,7 @@ const Contact = () => {
             <span>PHONE :</span> 0917 123 4567
           </p>
           <p>
-            <span>FACEBOOK PAGE :</span> VIBRA 
+            <span>FACEBOOK PAGE :</span> VIBRA
           </p>
           <p>
             <span>E-MAIL :</span> vibra.team@email.com

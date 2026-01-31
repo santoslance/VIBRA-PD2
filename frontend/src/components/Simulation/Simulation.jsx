@@ -10,7 +10,6 @@ const TREATMENTS = [
   { id: "rug", name: "Rug", icon: "🟫", impact: { hotspot: 15, deadspot: 0, neutral: 0 } },
 ];
 
-
 function normalizeZone(classification) {
   const cls = String(classification || "").toLowerCase();
   if (cls.includes("hot")) return "hotspot";
@@ -27,56 +26,39 @@ function makePointKey(row, index) {
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-// Studio standard for your system (camera sensor mapping)
-const STUDIO_MIN_M = 3;
-const STUDIO_MAX_M = 5;
+/* =========================
+   STUDIO STANDARD (CM)
+========================= */
 
-// --- helpers for "studio standard 3–5 meters" error handling ---
-const toMeters = (v) => {
-  if (v == null) return null;
-  const raw = String(v).trim();
-
-  const num = parseFloat(raw.replace(/[^\d.-]/g, ""));
-  if (!Number.isFinite(num)) return null;
-
-  const lower = raw.toLowerCase();
-
-  // support: "120 cm", "1.2 m", "4.5m", "4500 mm"
-  if (lower.includes("cm")) return num / 100;
-  if (lower.includes("mm")) return num / 1000;
-  if (lower.includes("m")) return num;
-
-  // if no unit, assume cm (since your sheet uses cm)
-  return num / 100;
-};
+const STUDIO_MIN_CM = 300;
+const STUDIO_MAX_CM = 500;
 
 const getRoomSizeStatus = (rows = []) => {
-  // We infer "room size" from the farthest ultrasonic radius in the deployed points.
-  // If your ultrasonic column is distance from center to wall, then 2*max gives an estimated diameter.
-  // If instead it already represents a room dimension, adjust here accordingly.
-  const meters = rows
-    .map((r) => toMeters(r.ultrasonic))
+  const values = rows
+    .map((r) => Number(r.ultrasonic))
     .filter((v) => Number.isFinite(v) && v > 0);
 
-  if (!meters.length) {
+  if (!values.length) {
     return {
       ok: false,
-      reason: "No ultrasonic distance values found. Please import/deploy valid data.",
-      estimatedMeters: null,
+      estimatedCm: null,
+      reason: "No ultrasonic distance values found.",
     };
   }
 
-  const maxR = Math.max(...meters); // radius-like distance (m)
-  const estimated = Number((maxR * 2).toFixed(2)); // diameter estimate (m)
+  const maxRadiusCm = Math.max(...values);
+  const estimatedRoomCm = maxRadiusCm * 2;
 
-  const ok = estimated >= STUDIO_MIN_M && estimated <= STUDIO_MAX_M;
+  const ok =
+    estimatedRoomCm >= STUDIO_MIN_CM &&
+    estimatedRoomCm <= STUDIO_MAX_CM;
 
   return {
     ok,
-    estimatedMeters: estimated,
+    estimatedCm: estimatedRoomCm,
     reason: ok
-      ? `Studio standard detected (${STUDIO_MIN_M}–${STUDIO_MAX_M}m).`
-      : `Not studio standard: estimated ~${estimated}m (expected ${STUDIO_MIN_M}–${STUDIO_MAX_M}m).`,
+      ? `Studio standard detected (${STUDIO_MIN_CM}–${STUDIO_MAX_CM} cm).`
+      : `Outside studio standard: ~${estimatedRoomCm} cm (expected ${STUDIO_MIN_CM}–${STUDIO_MAX_CM} cm).`,
   };
 };
 
@@ -86,10 +68,9 @@ export default function Simulation() {
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [showAfter, setShowAfter] = useState(true);
 
-  // ✅ NEW: room size validation state
   const [roomCheck, setRoomCheck] = useState({
     ok: true,
-    estimatedMeters: null,
+    estimatedCm: null,
     reason: "",
   });
 
@@ -102,6 +83,7 @@ export default function Simulation() {
   const bestTreatment = useMemo(() => {
     if (!selectedPoint) return null;
     const zone = selectedPoint.zone || "neutral";
+
     let best = null;
     let bestScore = -Infinity;
 
@@ -115,39 +97,28 @@ export default function Simulation() {
     return best;
   }, [selectedPoint]);
 
-  // ✅ stable
   const onResetAll = useCallback(() => {
     setDeployedData([]);
     setEffectsByKey({});
     setSelectedPoint(null);
     setShowAfter(true);
-    setRoomCheck({ ok: true, estimatedMeters: null, reason: "" });
+    setRoomCheck({ ok: true, estimatedCm: null, reason: "" });
   }, []);
 
-  // ✅ stable
+  /* =========================
+     ✅ NON-BLOCKING DEPLOY
+  ========================= */
   const onDeployData = useCallback((data) => {
-    // Studio standard check (3–5m)
     const status = getRoomSizeStatus(data);
-
     setRoomCheck(status);
 
-    // If NOT studio standard, block deployment to the 3D scene
-    if (!status.ok) {
-      setDeployedData([]); // clear scene to avoid misleading mapping
-      setEffectsByKey({});
-      setSelectedPoint(null);
-      setShowAfter(true);
-      return;
-    }
-
-    // OK: proceed with deployment
+    // 🚀 ALWAYS DEPLOY DATA
     setDeployedData(data);
     setEffectsByKey({});
     setSelectedPoint(null);
     setShowAfter(true);
   }, []);
 
-  // ✅ stable
   const onApplyTreatment = useCallback(
     (pointKey, treatmentId, originalZone) => {
       const treatment = treatmentsById[treatmentId];
@@ -174,12 +145,6 @@ export default function Simulation() {
     [treatmentsById]
   );
 
-  // optional helper: allow UI to “try deploy anyway” after user fixes data
-  const recheckRoomSize = useCallback(() => {
-    const status = getRoomSizeStatus(deployedData);
-    setRoomCheck(status);
-  }, [deployedData]);
-
   return (
     <section id="simulation" className="simulation">
       <LeftPanel
@@ -191,11 +156,9 @@ export default function Simulation() {
         showAfter={showAfter}
         setShowAfter={setShowAfter}
         effectsByKey={effectsByKey}
-        // ✅ NEW props for error handling UI
         roomCheck={roomCheck}
-        studioMin={STUDIO_MIN_M}
-        studioMax={STUDIO_MAX_M}
-        onRecheckRoomSize={recheckRoomSize}
+        studioMin={STUDIO_MIN_CM}
+        studioMax={STUDIO_MAX_CM}
       />
 
       <RightPanel
@@ -207,7 +170,6 @@ export default function Simulation() {
         onSelectSphere={setSelectedPoint}
         selectedPoint={selectedPoint}
         showAfter={showAfter}
-        // ✅ NEW: RightPanel can optionally show overlay if blocked (if you want)
         roomCheck={roomCheck}
       />
     </section>

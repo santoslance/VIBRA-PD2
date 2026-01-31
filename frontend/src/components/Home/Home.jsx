@@ -8,6 +8,10 @@ const Home = () => {
   return (
     <div className="home">
       <h1>V I B R A</h1>
+
+       {/* subtle glow divider */}
+       <div className="home-divider" />
+       
       <p>Studio Simulation</p>
 
       <button className="learn-btn" onClick={goToAbout}>

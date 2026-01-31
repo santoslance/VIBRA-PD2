@@ -39,35 +39,35 @@ const members = [
   },
 ];
 
-
 const Team = () => {
   const { ref, isVisible } = useScrollFadeIn();
 
   return (
-    <div
-      ref={ref}
-      className={`team fade-section ${isVisible ? "visible" : ""}`}
-    >
-      <h2>
-        <span className="h2-highlight">OUR </span>TEAM
-      </h2>
-      <p className="team-subtitle">STAY CONNECTED</p>
+    <div ref={ref} className={`team ${isVisible ? "visible" : ""}`}>
+      {/* HERO */}
+      <div className="team-center">
+        <div className="team-hero">
+          <h2 className="team-title">
+            <span className="h2-highlight">OUR</span> TEAM
+          </h2>
 
+          {/* subtle divider / glow */}
+          <div className="team-divider" />
+
+          <p className="team-subtitle">STAY CONNECTED</p>
+        </div>
+      </div>
+
+      {/* GRID */}
       <div className="team-grid">
         {members.map((m, i) => (
           <div key={i} className="card">
-          <div className="img-wrapper">
-            <img
-              src={m.image}
-              alt={m.name}
-              className="member-img"
-            />
-            <div className="img-overlay">
-              <span>{m.name}</span>
+            <div className="img-wrapper">
+              <img src={m.image} alt={m.name} className="member-img" />
             </div>
-          </div>
+
             <h3>{m.name}</h3>
-        <p className="member-role">{m.role}</p>
+            <p className="member-role">{m.role}</p>
             <small>{m.desc}</small>
           </div>
         ))}
