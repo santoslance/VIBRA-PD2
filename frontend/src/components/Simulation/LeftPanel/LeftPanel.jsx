@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import "./LeftPanel.css";
 
-const SPREADSHEET_ID = "1OAfQI6MwheL6wIes1EhGjak3G1jSVLFGppmzqTL9MWQ";
-
 const layers = {
   "Layer 1": 0,
   "Layer 2": 540291160,
@@ -11,7 +9,6 @@ const layers = {
 };
 
 const DEFAULT_ROW_COUNT = 5;
-
 const createBlankRows = () =>
   Array.from({ length: DEFAULT_ROW_COUNT }, () => ({
     angle: "",
@@ -22,60 +19,22 @@ const createBlankRows = () =>
     layer: "",
   }));
 
-const prettyZone = (zone) => {
-  if (!zone) return "—";
-  const z = String(zone).toLowerCase();
-  if (z.includes("hot")) return "HOTSPOT";
-  if (z.includes("dead")) return "DEADSPOT";
-  return "NEUTRAL";
-};
+const normalizeRow = (row) => ({
+  angle: Number(row.angle),
+  db: Number(row.db),
+  ultrasonic: Number(row.ultrasonic),
+  rt60: Number(row.rt60),
+  classification: String(row.classification).toLowerCase().replace(/\s+/g, ""),
+  layer: row.layer,
+});
 
-const formatAppliedTreatments = (applied = [], treatments = []) => {
-  const counts = {};
-  applied.forEach((id) => {
-    counts[id] = (counts[id] || 0) + 1;
-  });
-
-  return Object.entries(counts).map(([id, count]) => {
-    const t = treatments.find((x) => x.id === id);
-    return `${t?.name || id} ×${count}`;
-  });
-};
-
-const intensityFromSeverity = (severity) => {
-  if (severity <= 20) return "LOW";
-  if (severity <= 50) return "MEDIUM";
-  return "HIGH";
-};
-
-const dominantTreatmentName = (applied = [], treatments = [], fallbackName = "") => {
-  if (!applied?.length) return fallbackName || "—";
-  const counts = {};
-  applied.forEach((id) => (counts[id] = (counts[id] || 0) + 1));
-
-  let topId = null;
-  let topCount = -1;
-  Object.entries(counts).forEach(([id, c]) => {
-    if (c > topCount) {
-      topId = id;
-      topCount = c;
-    }
-  });
-
-  const t = treatments.find((x) => x.id === topId);
-  return t?.name || fallbackName || topId || "—";
-};
-
-/* =========================
-   COLOR MATCHING (SAME AS 3D)
-========================= */
+/* ✅ Neutral is WHITE */
 const ZONE_COLORS = {
   hotspot: "#b22222",
   deadspot: "#4292c6",
-  neutral: "#ffffffff",
+  neutral: "#ffffff",
 };
 
-// blend from -> to by t (0..1)
 const blendColor = (fromHex, toHex, t) => {
   const f = fromHex.replace("#", "");
   const e = toHex.replace("#", "");
@@ -95,7 +54,34 @@ const blendColor = (fromHex, toHex, t) => {
   return `rgb(${r}, ${g}, ${b})`;
 };
 
-const LeftPanel = ({
+const prettyZone = (zone) => {
+  if (!zone) return "—";
+  const z = String(zone).toLowerCase();
+  if (z.includes("hot")) return "HOTSPOT";
+  if (z.includes("dead")) return "DEADSPOT";
+  return "NEUTRAL";
+};
+
+const formatAppliedTreatments = (applied = [], treatments = []) => {
+  const counts = {};
+  applied.forEach((id) => {
+    counts[id] = (counts[id] || 0) + 1;
+  });
+  return Object.entries(counts).map(([id, count]) => {
+    const t = treatments.find((x) => x.id === id);
+    return `${t?.name || id} ×${count}`;
+  });
+};
+
+/* ✅ 1-liner “micro preview” descriptions (fallback if treatments don’t include description) */
+const TREATMENT_PREVIEW = {
+  bass_trap: "Reduces low-frequency boomy buildup",
+  absorber: "Reduces reflections and echo",
+  diffuser: "Spreads reflections evenly",
+  rug: "Reduces floor reflections",
+};
+
+export default function LeftPanel({
   onDeploy,
   onReset,
   treatments = [],
@@ -104,55 +90,61 @@ const LeftPanel = ({
   showAfter,
   setShowAfter,
   effectsByKey,
-}) => {
+}) {
+  // ✅ Start with blank rows (keeps your current UI style on initial load)
   const [data, setData] = useState(createBlankRows());
   const [filtered, setFiltered] = useState(createBlankRows());
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
 
-  /* =========================
-     IMPORT CLOUD
-  ========================= */
   const importCloud = async () => {
+    const PUB_ID =
+      "2PACX-1vQnlfc6CjTojBjP_DLUsIuHR3W0QcUPJpI9_M3cruntXPtUog_gtHLb8qb2dP-D-ZQ4e2rUKG89S0yD";
+
     let combined = [];
 
-    for (const layerName in layers) {
-      const gid = layers[layerName];
-      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=${gid}`; 
-
+    for (const [layerName, gid] of Object.entries(layers)) {
+      const url = `https://docs.google.com/spreadsheets/d/e/${PUB_ID}/pub?output=csv&gid=${gid}`;
       const res = await fetch(url);
       const text = await res.text();
 
-      const json = JSON.parse(
-        text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-      );
+      const rows = text
+        .trim()
+        .split("\n")
+        .slice(1)
+        .map((line) => {
+          const [angle, db, rt60, ultrasonic, classification] = line.split(",");
+          return { angle, db, rt60, ultrasonic, classification, layer: layerName };
+        });
 
-      const rows = json.table.rows;
-
-      rows.forEach((row) => {
-        if (!row.c) return;
-
-
-      combined.push({
-        angle: row.c[0]?.v ?? "",          // angle
-        db: row.c[1]?.v ?? "",             // db
-        rt60: row.c[2]?.v ?? "",           // reverberation = RT60 ✅
-        ultrasonic: row.c[3]?.v ?? "",     // ultrasonicValue ✅
-        classification: row.c[4]?.v ?? "", // Hot Spot / Dead Spot / Neutral
-        layer: layerName,                  // virtual layer from sheet tab
-      });
-
-      });
+      combined = combined.concat(rows);
     }
 
     setData(combined);
     setFiltered(combined);
-    setMessage(combined.length ? "" : "No data fetched from cloud");
+    setMessage("");
   };
 
-  /* =========================
-     SEARCH
-  ========================= */
+  // ✅ Deploy: block if empty, and be more tolerant (angle/ultrasonic/db)
+  const deployData = () => {
+    if (!filtered?.length) {
+      setMessage("No data to deploy. Please import first.");
+      return;
+    }
+
+    const normalized = filtered
+      .filter((r) => r.angle || r.ultrasonic || r.db)
+      .map(normalizeRow);
+
+    if (!normalized.length) {
+      setMessage("No valid rows found. Please import valid data.");
+      return;
+    }
+
+    setMessage("");
+    onDeploy(normalized);
+  };
+
   const handleSearch = () => {
     if (!query) {
       setFiltered(data);
@@ -161,64 +153,91 @@ const LeftPanel = ({
     }
 
     const result = data.filter((row) =>
-      Object.values(row).some((v) =>
-        String(v).toLowerCase().includes(query.toLowerCase())
-      )
+      Object.values(row).some((v) => String(v).toLowerCase().includes(query.toLowerCase()))
     );
 
     setFiltered(result);
     setMessage(result.length ? "" : "The value entered is not in the table");
   };
 
-  /* =========================
-     SORT
-  ========================= */
   const handleSort = (value) => {
+    // ✅ If table is empty, do nothing
+    if (!data?.length) {
+      setFiltered([]);
+      setMessage("No data yet. Please import first.");
+      return;
+    }
+
     let result = data;
 
     if (value === "HOTSPOT") {
       result = data.filter(
-        (row) =>
-          String(row.classification).toLowerCase().replace(/\s+/g, "") ===
-          "hotspot"
+        (row) => String(row.classification).toLowerCase().replace(/\s+/g, "") === "hotspot"
       );
     } else if (value === "DEADSPOT") {
       result = data.filter(
-        (row) =>
-          String(row.classification).toLowerCase().replace(/\s+/g, "") ===
-          "deadspot"
+        (row) => String(row.classification).toLowerCase().replace(/\s+/g, "") === "deadspot"
       );
     } else if (value.startsWith("Layer")) {
       result = data.filter((row) => row.layer === value);
+    } else if (value === "ALL") {
+      result = data;
     }
 
     setFiltered(result);
-    onDeploy(result);
+
+    // ✅ Only auto-deploy when there is actual filtered data
+    if (result?.length) {
+      const normalized = result
+        .filter((r) => r.angle || r.ultrasonic || r.db)
+        .map(normalizeRow);
+
+      if (normalized.length) onDeploy(normalized);
+    }
   };
 
-  /* =========================
-     RESET
-  ========================= */
+  // ✅ Reset: clear table completely + clear 3D
   const resetTable = () => {
-    const blanks = createBlankRows();
-    setData(blanks);
-    setFiltered(blanks);
+    setData([]); // ✅ empty
+    setFiltered([]); // ✅ empty
     setQuery("");
     setMessage("");
-    onReset();
+    onReset(); // ✅ clears 3D deployment
   };
 
-  /* =========================
-     EXPORT CSV
-  ========================= */
-  const exportCSV = () => {
-    const headers = "Angle,dB,Ultrasonic,RT60,Classification,Layer\n";
+  const importLocal = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      const lines = String(reader.result || "").split("\n").slice(1);
+
+      const parsed = lines
+        .filter(Boolean)
+        .map((line) => {
+          const [angle, db, ultrasonic, rt60, classification, layer] = line.split(",");
+          return { angle, db, ultrasonic, rt60, classification, layer };
+        });
+
+      setData(parsed);
+      setFiltered(parsed);
+      setMessage("");
+    };
+    reader.readAsText(file);
+  };
+
+  const exportCSV = () => {
+    if (!filtered?.length) {
+      setMessage("No data to export.");
+      return;
+    }
+
+    const headers = "Angle,dB,Ultrasonic,RT60,Classification,Layer\n";
     const rows = filtered
-      .filter((r) => r.angle || r.db)
+      .filter((r) => r.angle || r.ultrasonic || r.db)
       .map(
-        (r) =>
-          `${r.angle},${r.db},${r.ultrasonic},${r.rt60},${r.classification},${r.layer}`
+        (r) => `${r.angle},${r.db},${r.ultrasonic},${r.rt60},${r.classification},${r.layer}`
       )
       .join("\n");
 
@@ -229,44 +248,15 @@ const LeftPanel = ({
     link.click();
   };
 
-  /* =========================
-     IMPORT LOCAL
-  ========================= */
-  const importLocal = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      const lines = reader.result.split("\n").slice(1);
-
-      const parsed = lines
-        .filter(Boolean)
-        .map((line) => {
-          const [angle, db, ultrasonic, rt60, classification, layer] =
-            line.split(",");
-          return { angle, db, ultrasonic, rt60, classification, layer };
-        });
-
-      setData(parsed);
-      setFiltered(parsed);
-    };
-
-    reader.readAsText(file);
-  };
-
-  const deployData = () => onDeploy(filtered);
-
+  /* ========================= SELECTED POINT COLORS ========================= */
   const selectedRow = selectedPoint?.row || null;
   const selectedFx = selectedPoint?.key ? effectsByKey?.[selectedPoint.key] : null;
-
   const appliedList = selectedFx?.applied || [];
   const hasApplied = appliedList.length > 0;
 
   const zoneKey = selectedPoint?.zone || "neutral";
   const beforeColor = ZONE_COLORS[zoneKey] || ZONE_COLORS.neutral;
 
-  // AFTER color changes ONLY if hasApplied (match RightPanel logic)
   let afterColor = beforeColor;
   if (hasApplied) {
     const severity = selectedFx?.severity ?? 70;
@@ -274,14 +264,15 @@ const LeftPanel = ({
     afterColor = blendColor(ZONE_COLORS.neutral, beforeColor, t);
   }
 
-  const dominantName = dominantTreatmentName(
-    appliedList,
-    treatments,
-    bestTreatment?.name || ""
-  );
+  // ✅ Best treatment description (use treatment.description if present, else fallback)
+  const bestDesc = useMemo(() => {
+    if (!bestTreatment) return "";
+    const found = treatments.find((t) => t.id === bestTreatment.id);
+    return found?.description || TREATMENT_PREVIEW[bestTreatment.id] || "";
+  }, [bestTreatment, treatments]);
 
-  const severityVal = selectedFx?.severity ?? 70;
-  const intensityLabel = intensityFromSeverity(severityVal);
+  // ✅ for empty-table UX
+  const isEmptyTable = !filtered?.length;
 
   return (
     <div className="left-panel">
@@ -294,12 +285,13 @@ const LeftPanel = ({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search..."
+            disabled={!data?.length}
           />
-          <button className="raw-btn" onClick={handleSearch}>
+          <button className="raw-btn" onClick={handleSearch} disabled={!data?.length}>
             Enter
           </button>
 
-          <select className="raw-btn" onChange={(e) => handleSort(e.target.value)}>
+          <select className="raw-btn" onChange={(e) => handleSort(e.target.value)} disabled={!data?.length}>
             <option value="ALL">Sort</option>
             <option value="HOTSPOT">Hot Spot</option>
             <option value="DEADSPOT">Dead Spot</option>
@@ -327,37 +319,50 @@ const LeftPanel = ({
             </thead>
 
             <tbody>
-              {filtered.map((row, i) => (
-                <tr key={i}>
-                  <td>{row.angle || row.db ? i + 1 : ""}</td>
-                  <td>{row.angle}</td>
-                  <td>{row.db}</td>
-                  <td>{row.ultrasonic}</td>
-                  <td>{row.rt60}</td>
-                  <td>{row.classification}</td>
-                  <td>{row.layer}</td>
+              {isEmptyTable ? (
+                <tr>
+                  <td colSpan={7} style={{ opacity: 0.75, padding: "14px" }}>
+                    No data yet — Import from Local/Cloud, then Deploy.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                filtered.map((row, i) => (
+                  <tr key={i}>
+                    <td>{row.angle || row.db || row.ultrasonic ? i + 1 : ""}</td>
+                    <td>{row.angle}</td>
+                    <td>{row.db}</td>
+                    <td>{row.ultrasonic}</td>
+                    <td>{row.rt60}</td>
+                    <td>{row.classification}</td>
+                    <td>{row.layer}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="raw-actions">
           <div className="raw-actions-left">
-            <button className="raw-btn" onClick={deployData}>Deploy</button>
-            <button className="raw-btn" onClick={exportCSV}>Export</button>
-            <button className="raw-btn" onClick={resetTable}>Reset</button>
+            <button className="raw-btn" onClick={deployData} disabled={!filtered?.length}>
+              Deploy
+            </button>
+            <button className="raw-btn" onClick={exportCSV} disabled={!filtered?.length}>
+              Export
+            </button>
+            <button className="raw-btn" onClick={resetTable}>
+              Reset
+            </button>
           </div>
 
           <div className="raw-actions-right">
             <input type="file" accept=".csv" hidden id="importLocal" onChange={importLocal} />
-            <button
-              className="raw-btn"
-              onClick={() => document.getElementById("importLocal").click()}
-            >
+            <button className="raw-btn" onClick={() => document.getElementById("importLocal").click()}>
               Import Local
             </button>
-            <button className="raw-btn" onClick={importCloud}>Import Cloud</button>
+            <button className="raw-btn" onClick={importCloud}>
+              Import Cloud
+            </button>
           </div>
         </div>
       </div>
@@ -365,17 +370,21 @@ const LeftPanel = ({
       {/* ================= MID ROW ================= */}
       <div className="mid-row">
         <div className="rt60-box">
-          <h4 className="box-title">RT60 ROOM VALUE</h4>
-          <p>1.77s (Overall)</p>
-          <span>Layer 1</span>
+          <h4 className="box-title">SPATIAL STATUS</h4>
         </div>
 
         <div className="legend-box">
           <h4 className="box-title">LEGEND</h4>
-          <ul>
-            <li><span className="dead" /> Dead Spot</li>
-            <li><span className="hot" /> Hot Spot</li>
-            <li><span className="neutral" /> Neutral Zone</li>
+          <ul className="legend-row">
+            <li>
+              <span className="legend-dot neutral" /> Neutral
+            </li>
+            <li>
+              <span className="legend-dot dead" /> Dead Spot
+            </li>
+            <li>
+              <span className="legend-dot hot" /> Hot Spot
+            </li>
           </ul>
         </div>
       </div>
@@ -399,16 +408,18 @@ const LeftPanel = ({
           </button>
         </div>
 
+        {/* ✅ Onboarding hint (no tip colors, per your request) */}
         {!selectedPoint && (
-          <p className="rec-text">
-            Click a sphere in the 3D room to see the best treatment recommendation.
-            You can also drag a treatment below and drop it onto a sphere.
-          </p>
+          <div className="rec-hint">
+            <div className="rec-hint-title">How to use</div>
+            <div className="rec-hint-text">
+              Click any sphere in the 3D view to see details and apply treatments.
+            </div>
+          </div>
         )}
 
         {selectedPoint && (
           <div className="rec-details">
-            {/* ✅ FIXED spacing + dots only (no "Before/After" text) */}
             <div className="rec-zone-row">
               <div className="rec-zone-left">
                 <span className="rec-label">Selected Zone:</span>
@@ -431,11 +442,21 @@ const LeftPanel = ({
 
             {selectedRow && (
               <div className="rec-meta">
-                <div><span className="rec-label">Layer:</span> {selectedRow.layer || "—"}</div>
-                <div><span className="rec-label">Angle:</span> {selectedRow.angle || "—"}</div>
-                <div><span className="rec-label">Ultrasonic:</span> {selectedRow.ultrasonic || "—"}</div>
-                <div><span className="rec-label">dB:</span> {selectedRow.db || "—"}</div>
-                <div><span className="rec-label">RT60:</span> {selectedRow.rt60 || "—"}</div>
+                <div>
+                  <span className="rec-label">Layer:</span> {selectedRow.layer || "—"}
+                </div>
+                <div>
+                  <span className="rec-label">Angle:</span> {selectedRow.angle || "—"}
+                </div>
+                <div>
+                  <span className="rec-label">Ultrasonic:</span> {selectedRow.ultrasonic || "—"}
+                </div>
+                <div>
+                  <span className="rec-label">dB:</span> {selectedRow.db || "—"}
+                </div>
+                <div>
+                  <span className="rec-label">RT60:</span> {selectedRow.rt60 || "—"}
+                </div>
               </div>
             )}
 
@@ -446,59 +467,28 @@ const LeftPanel = ({
                   <span className="rec-best-name"> {bestTreatment.name}</span>
                 </div>
                 <div className="rec-best-sub">Highest improvement for this zone type</div>
+
+                {/* ✅ micro description preview */}
+                {!!bestDesc && <div className="rec-best-desc">“{bestDesc}”</div>}
               </div>
             )}
 
-            {selectedPoint.key && selectedFx ? (
-              <div className="rec-status">
-                <div>
-                  <span className="rec-label">After Status:</span>{" "}
-                  Severity {severityVal}/100
-                </div>
-
-                <div className="rec-applied">
+            {/* ✅ Removed severity / intensity block (per your request) */}
+            <div className="rec-status muted">
+              {hasApplied ? (
+                <>
                   <span className="rec-label">Applied:</span>{" "}
-                  {hasApplied
-                    ? formatAppliedTreatments(appliedList, treatments).join(", ")
-                    : "—"}
-                </div>
-
-                <div className="rec-intensity">
-                  <span className="rec-label">Treatment Intensity:</span>{" "}
-                  {hasApplied ? `${intensityLabel} (${dominantName} dominant)` : "—"}
-                </div>
-              </div>
-            ) : (
-              <div className="rec-status muted">
-                No treatment applied yet. Drag a treatment below and drop it on this sphere.
-              </div>
-            )}
+                  {formatAppliedTreatments(appliedList, treatments).join(", ")}
+                </>
+              ) : (
+                "No treatment applied yet. Use the popup menu in the 3D simulation to apply one."
+              )}
+            </div>
           </div>
         )}
-
-<div className="rec-cards">
-  {treatments.map((t) => (
-    <div
-      key={t.id}
-      className="rec-card"
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", t.id);
-        e.dataTransfer.effectAllowed = "copy";
-      }}
-      title={`Drag ${t.name} onto a sphere`}
-    >
-      <span className="rec-card-icon">{t.icon}</span>
-      <span className="rec-card-label">{t.name}</span>
-    </div>
-  ))}
-</div>
-
 
         <span className="arrow">›</span>
       </div>
     </div>
   );
-};
-
-export default LeftPanel;
+}

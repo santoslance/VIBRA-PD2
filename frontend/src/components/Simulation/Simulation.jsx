@@ -26,39 +26,46 @@ function makePointKey(row, index) {
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-/* =========================
-   STUDIO STANDARD (CM)
-========================= */
+// ✅ STOP applying below this (prevents “Applied” growing forever)
+const MIN_SEVERITY = 20;
 
-const STUDIO_MIN_CM = 300;
-const STUDIO_MAX_CM = 500;
+// Studio standard
+const STUDIO_MIN_M = 3;
+const STUDIO_MAX_M = 5;
+
+const toMeters = (v) => {
+  if (v == null) return null;
+  const raw = String(v).trim();
+  const num = parseFloat(raw.replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(num)) return null;
+
+  const lower = raw.toLowerCase();
+  if (lower.includes("cm")) return num / 100;
+  if (lower.includes("mm")) return num / 1000;
+  if (lower.includes("m")) return num;
+
+  return num / 100;
+};
 
 const getRoomSizeStatus = (rows = []) => {
-  const values = rows
-    .map((r) => Number(r.ultrasonic))
+  const meters = rows
+    .map((r) => toMeters(r.ultrasonic))
     .filter((v) => Number.isFinite(v) && v > 0);
 
-  if (!values.length) {
-    return {
-      ok: false,
-      estimatedCm: null,
-      reason: "No ultrasonic distance values found.",
-    };
+  if (!meters.length) {
+    return { ok: false, reason: "No ultrasonic distance values found.", estimatedMeters: null };
   }
 
-  const maxRadiusCm = Math.max(...values);
-  const estimatedRoomCm = maxRadiusCm * 2;
-
-  const ok =
-    estimatedRoomCm >= STUDIO_MIN_CM &&
-    estimatedRoomCm <= STUDIO_MAX_CM;
+  const maxR = Math.max(...meters);
+  const estimated = Number((maxR * 2).toFixed(2));
+  const ok = estimated >= STUDIO_MIN_M && estimated <= STUDIO_MAX_M;
 
   return {
     ok,
-    estimatedCm: estimatedRoomCm,
+    estimatedMeters: estimated,
     reason: ok
-      ? `Studio standard detected (${STUDIO_MIN_CM}–${STUDIO_MAX_CM} cm).`
-      : `Outside studio standard: ~${estimatedRoomCm} cm (expected ${STUDIO_MIN_CM}–${STUDIO_MAX_CM} cm).`,
+      ? `Studio standard detected (${STUDIO_MIN_M}–${STUDIO_MAX_M}m).`
+      : `Not studio standard: estimated ~${estimated}m (expected ${STUDIO_MIN_M}–${STUDIO_MAX_M}m).`,
   };
 };
 
@@ -70,7 +77,7 @@ export default function Simulation() {
 
   const [roomCheck, setRoomCheck] = useState({
     ok: true,
-    estimatedCm: null,
+    estimatedMeters: null,
     reason: "",
   });
 
@@ -102,30 +109,37 @@ export default function Simulation() {
     setEffectsByKey({});
     setSelectedPoint(null);
     setShowAfter(true);
-    setRoomCheck({ ok: true, estimatedCm: null, reason: "" });
+    setRoomCheck({ ok: true, estimatedMeters: null, reason: "" });
   }, []);
 
-  /* =========================
-     ✅ NON-BLOCKING DEPLOY
-  ========================= */
   const onDeployData = useCallback((data) => {
     const status = getRoomSizeStatus(data);
     setRoomCheck(status);
 
-    // 🚀 ALWAYS DEPLOY DATA
+    // ✅ you said you want to still show even if not studio standard
     setDeployedData(data);
     setEffectsByKey({});
     setSelectedPoint(null);
     setShowAfter(true);
   }, []);
 
+  // ✅ APPLY TREATMENT (STOP WHEN MAXED)
   const onApplyTreatment = useCallback(
     (pointKey, treatmentId, originalZone) => {
       const treatment = treatmentsById[treatmentId];
       if (!treatment) return;
 
       setEffectsByKey((prev) => {
-        const prevPoint = prev[pointKey] || { severity: 70, applied: [] };
+        const prevPoint = prev[pointKey] || { severity: 70, applied: [], locked: false };
+
+        // ✅ If already max-treated, block further applies
+        if (prevPoint.locked || prevPoint.severity <= MIN_SEVERITY) {
+          return {
+            ...prev,
+            [pointKey]: { ...prevPoint, severity: MIN_SEVERITY, locked: true },
+          };
+        }
+
         const times = prevPoint.applied.filter((x) => x === treatmentId).length;
         const diminish = Math.pow(0.7, times);
 
@@ -133,17 +147,33 @@ export default function Simulation() {
         const baseImpact = treatment.impact?.[zone] ?? 0;
         const impact = Math.round(baseImpact * diminish);
 
+        // ✅ If impact is zero, don’t add “Applied” (prevents confusion)
+        if (impact <= 0) return prev;
+
+        const nextSeverity = Math.max(MIN_SEVERITY, clamp(prevPoint.severity - impact, 0, 100));
+
+        // ✅ If severity doesn’t change, don’t add “Applied”
+        if (nextSeverity === prevPoint.severity) return prev;
+
+        const locked = nextSeverity <= MIN_SEVERITY;
+
         return {
           ...prev,
           [pointKey]: {
-            severity: clamp(prevPoint.severity - impact, 0, 100),
+            severity: nextSeverity,
             applied: [...prevPoint.applied, treatmentId],
+            locked,
           },
         };
       });
     },
     [treatmentsById]
   );
+
+  const recheckRoomSize = useCallback(() => {
+    const status = getRoomSizeStatus(deployedData);
+    setRoomCheck(status);
+  }, [deployedData]);
 
   return (
     <section id="simulation" className="simulation">
@@ -157,8 +187,9 @@ export default function Simulation() {
         setShowAfter={setShowAfter}
         effectsByKey={effectsByKey}
         roomCheck={roomCheck}
-        studioMin={STUDIO_MIN_CM}
-        studioMax={STUDIO_MAX_CM}
+        studioMin={STUDIO_MIN_M}
+        studioMax={STUDIO_MAX_M}
+        onRecheckRoomSize={recheckRoomSize}
       />
 
       <RightPanel
@@ -171,6 +202,7 @@ export default function Simulation() {
         selectedPoint={selectedPoint}
         showAfter={showAfter}
         roomCheck={roomCheck}
+        treatments={TREATMENTS} /* ✅ pass to popup */
       />
     </section>
   );

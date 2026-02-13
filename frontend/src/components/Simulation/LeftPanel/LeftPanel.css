@@ -1,13 +1,12 @@
+/* LeftPanel.css (UPDATED — Best Recommendation only + treatment description, same style) */
+
 .left-panel {
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  min-height: 0;
 }
-
-/* =========================
-   BOX TITLES / HEADINGS
-========================= */
 
 .box-title {
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
@@ -17,39 +16,44 @@
 
 .rt60-box h4,
 .legend-box h4,
-.recommend-box h4 { font-size: 30px; margin-top: 10px; margin-bottom: 30px; }
+.recommend-box h4 {
+  font-size: 26px;
+  margin-top: 8px;
+  margin-bottom: 18px;
+}
 
-.rt60-box p { font-size: 24px; }
-.legend-box ul { font-size: 24px; }
+.rt60-box p { font-size: 20px; }
+.legend-box ul { font-size: 20px; }
 
 /* RAW PARAMETERS */
 .raw-box {
   background: linear-gradient(135deg, #c55436, #e58b4f);
   border-radius: 22px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .raw-box h3 {
   letter-spacing: 3px;
-  font-size: 30px;
-  margin-top: 10px;
-  margin-bottom: 30px;
+  font-size: 26px;
+  margin-top: 6px;
+  margin-bottom: 16px;
 }
 
 .search-row {
   display: flex;
   gap: 8px;
-  margin: 10px 0;
+  margin: 8px 0 10px;
 }
 
 .search-row input {
   flex: 1;
   border-radius: 15px;
   border: none;
-  padding: 15px 8px;
-  font-size: 20px;
+  padding: 12px 10px;
+  font-size: 18px;
 }
 
 .search-row button {
@@ -57,37 +61,30 @@
   border-radius: 15px;
   border: none;
   padding: 10px 12px;
-  font-size: 20px;
-}
-
-.raw-table { margin: 10px 0; }
-
-.raw-table .row {
-  height: 12px;
-  background: rgba(0,0,0,0.35);
-  border-radius: 8px;
-  margin-bottom: 6px;
+  font-size: 18px;
 }
 
 .raw-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto; /* keeps buttons at bottom */
+  margin-top: 10px;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .raw-actions-left,
 .raw-actions-right {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* MID ROW */
 .mid-row {
   display: flex;
-  gap: 18px;
-  flex: 0.10;
+  gap: 16px;
+  flex: 0 0 auto;
 }
 
 .rt60-box,
@@ -95,62 +92,68 @@
   flex: 1;
   background: linear-gradient(135deg, #ef7e4d, #f4b261);
   border-radius: 22px;
-  padding: 18px;
+  padding: 16px;
+  min-height: 0;
 }
 
-.legend-box ul {
+/* Legend */
+.legend-row {
   list-style: none;
   padding: 0;
-  margin-top: 8px;
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
-.legend-box li {
+.legend-row li {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 0;
 }
 
-.legend-box span {
-  width: 16px;
-  height: 16px;
+.legend-dot {
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: inline-block;
+  box-shadow: 0 0 10px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.35);
 }
 
-
-
-.dead { background: #4292c6; }   /* ✅ match 3D */
+.dead { background: #4292c6; }
 .hot { background: #e63946; }
-.neutral { background: #fafafa; }
+.neutral { background: #ffffff; }
 
 /* RECOMMENDATION */
 .recommend-box {
   background: linear-gradient(135deg, #f08a4b, #ffd166);
   border-radius: 26px;
-  padding: 30px;
+  padding: 20px;
   position: relative;
-  flex: 0.30;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .recommend-box .arrow {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 14px;
+  bottom: 14px;
   font-size: 28px;
+  opacity: 0.35;
+  pointer-events: none;
 }
 
-/* =========================
-   RAW PARAMETERS – TABLE
-========================= */
-
+/* TABLE */
 .table-wrapper {
-  max-height: 250px;
+  max-height: 220px;
   overflow-y: auto;
   border-radius: 12px;
   position: relative;
-  margin-bottom: 30px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 6px;
 }
 
 .raw-table {
@@ -163,21 +166,16 @@
 .raw-table thead {
   position: sticky;
   top: 0;
-  z-index: 0;
+  z-index: 1;
   background: #5a2f1d;
 }
 
-.raw-table thead th { font-size: 18px; }
-.raw-table tbody { font-size: 18px; }
-
-.raw-table tbody tr { height: 48px; }
-
+.raw-table thead th { font-size: 16px; }
+.raw-table tbody { font-size: 16px; }
+.raw-table tbody tr { height: 44px; }
 .raw-table td { vertical-align: middle; }
 
-.raw-table td:empty::after {
-  content: "—";
-  opacity: 0.3;
-}
+.raw-table td:empty::after { content: "—"; opacity: 0.3; }
 
 .raw-table th,
 .raw-table td {
@@ -186,13 +184,7 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.raw-table tbody tr:hover {
-  background: rgba(0, 0, 0, 0.35);
-}
-
-/* =========================
-   RAW PARAMETERS – BUTTONS
-========================= */
+.raw-table tbody tr:hover { background: rgba(0, 0, 0, 0.35); }
 
 .raw-btn {
   background: #ffd166;
@@ -200,9 +192,10 @@
   border: none;
   border-radius: 10px;
   padding: 10px 12px;
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
 }
 
 .raw-btn:hover {
@@ -210,43 +203,99 @@
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
-/* =========================
-   RECOMMENDATION (CONSISTENT UI)
-========================= */
+.raw-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
+/* RECOMMENDATION UI */
 .rec-toggle {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .rec-toggle-btn.active { opacity: 1; }
 .rec-toggle-btn.muted { opacity: 0.6; }
 
 .rec-text {
-  font-size: 20px;
-  line-height: 1.5;
-  letter-spacing: 1px;
-  margin-bottom: 14px;
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: 0.6px;
+  margin-bottom: 12px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* =========================
+   ONBOARDING HINT (NO SELECTION)
+========================= */
+.rec-hint {
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  padding: 14px 14px;
+  margin-top: 10px;
+}
+
+.rec-hint-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.rec-hint-text {
+  font-size: 15px;
+  line-height: 1.45;
+  letter-spacing: 0.6px;
+  opacity: 0.95;
+  margin-bottom: 8px;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.rec-hint-tip {
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0.6px;
+  opacity: 0.95;
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+.tip-hot { color: #ff5a5a; font-weight: 800; }
+.tip-dead { color: #6ab7ff; font-weight: 800; }
+.tip-neutral { color: #ffffff; font-weight: 800; text-shadow: 0 0 6px rgba(0,0,0,0.35); }
+
+/* =========================
+   BEST RECOMMENDATION DESCRIPTION
+========================= */
+.rec-best-desc {
+  margin-top: 8px;
+  font-size: 14px;
+  letter-spacing: 0.6px;
+  line-height: 1.45;
+  opacity: 0.95;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 10px 10px;
+  border-radius: 14px;
 }
 
 .rec-details {
   background: rgba(0, 0, 0, 0.18);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
-  padding: 14px 14px;
-  margin-bottom: 14px;
+  padding: 12px 12px;
+  margin-bottom: 12px;
 }
 
-/* ✅ Selected Zone row (spacing + dots-only) */
 .rec-zone-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .rec-zone-left {
@@ -256,15 +305,8 @@
   min-width: 0;
 }
 
-.rec-label {
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-.rec-zone-text {
-  font-weight: 800;
-  letter-spacing: 1px;
-}
+.rec-label { font-weight: 700; letter-spacing: 0.8px; }
+.rec-zone-text { font-weight: 800; letter-spacing: 0.8px; }
 
 .rec-zone-right {
   display: flex;
@@ -273,7 +315,6 @@
   flex-shrink: 0;
 }
 
-/* ✅ color dots */
 .rec-color-dot {
   width: 14px;
   height: 14px;
@@ -283,29 +324,29 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
 }
 
-/* ✅ meta: consistent 2-column spacing */
 .rec-meta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px 18px;
-  font-size: 18px;
-  letter-spacing: 1px;
+  gap: 8px 14px;
+  font-size: 15px;
+  letter-spacing: 0.6px;
   opacity: 0.95;
-  margin: 12px 0 14px;
+  margin: 10px 0 12px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
+/* Best Recommendation Card */
 .rec-best {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
-  padding: 12px 12px;
-  margin-bottom: 14px;
+  padding: 10px 10px;
+  margin-bottom: 12px;
 }
 
 .rec-best-title {
-  font-size: 20px;
-  letter-spacing: 1px;
+  font-size: 16px;
+  letter-spacing: 0.6px;
   font-weight: 700;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
@@ -320,15 +361,52 @@
 
 .rec-best-sub {
   margin-top: 6px;
-  font-size: 16px;
+  font-size: 14px;
   opacity: 0.9;
-  letter-spacing: 1px;
+  letter-spacing: 0.6px;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
+/* NEW: Treatment description */
+.rec-best-desc {
+  margin-top: 10px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  background: rgba(0,0,0,0.16);
+  border: 1px solid rgba(255,255,255,0.14);
+}
+
+.rec-best-desc-title {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  margin-bottom: 6px;
+}
+
+.rec-best-desc-text {
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: 0.5px;
+  opacity: 0.95;
+}
+
+.rec-best-uses {
+  margin-top: 8px;
+  padding-left: 18px;
+  margin-bottom: 0;
+  opacity: 0.95;
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.rec-best-uses li {
+  margin: 5px 0;
+}
+
+/* Status */
 .rec-status {
-  font-size: 18px;
-  letter-spacing: 1px;
+  font-size: 15px;
+  letter-spacing: 0.6px;
   line-height: 1.45;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
@@ -336,73 +414,3 @@
 .rec-status > div { margin-top: 6px; }
 .rec-status.muted { opacity: 0.85; }
 .rec-applied { opacity: 0.95; }
-
-/* ✅ recommendation cards 2x2 */
-.rec-cards {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-top: 12px;
-}
-
-/* ✅ ICON + NAME INLINE CARD */
-.rec-card {
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  padding: 12px 14px;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  cursor: grab;
-  user-select: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.rec-card:active {
-  cursor: grabbing;
-}
-
-.rec-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-}
-
-/* ✅ icon */
-.rec-card-icon {
-  font-size: 28px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-/* ✅ name */
-.rec-card-label {
-  font-size: 16px;
-  letter-spacing: 1px;
-  font-weight: 700;
-  opacity: 0.95;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-}
-
-
-/* =========================
-   STUDIO STANDARD STATUS (3–5m)
-========================= */
-
-.studio-status {
-  margin-top: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  font-size: 16px;
-  letter-spacing: 1px;
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.studio-status.ok { background: rgba(42, 157, 143, 0.25); }
-.studio-status.warn { background: rgba(230, 57, 70, 0.25); }
-.studio-status.neutral { opacity: 0.85; }
-

@@ -1,59 +1,167 @@
+/* RightPanel.css (UPDATED — dark idle state + popup + clean 3D layout) */
+
 .right-panel {
-  flex: 1;
-  position: relative;
+  width: 100%;
   height: 100%;
+  min-height: 0; /* ✅ prevents layout overflow inside grid/sections */
+  position: relative; /* ✅ anchor popup inside panel */
+  border-radius: 22px;
+  overflow: hidden; /* ✅ keeps popup + canvas clean */
+  background: #0e0e0e; /* ✅ fallback dark background */
 }
 
-/* Placeholder */
+/* =========================
+   3D mount container
+========================= */
+.three-mount {
+  width: 100%;
+  height: 100%;
+  min-height: 420px; /* ✅ avoid collapsing */
+  position: relative;
+  background: #1a1a1a; /* subtle dark base */
+}
+
+/* =========================
+   PLACEHOLDER (NO DATA)
+========================= */
 .simulation-holder {
-  position: absolute;
-  height: 90%;
-  inset: 0;
-  background: #2d2d2d;
-  border-radius: 30px;
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  border-radius: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+}
+
+/* ✅ DARK / BLACK idle state */
+.simulation-holder.dark {
+  background: radial-gradient(
+    circle at center,
+    #1b1b1b 0%,
+    #0b0b0b 65%,
+    #000000 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .center-box {
-  width: 260px;
-  height: 260px;
-  background: #777;
-  border-radius: 40px;
+  padding: 18px 26px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px dashed rgba(255, 255, 255, 0.28);
+
+  color: rgba(255, 255, 255, 0.65);
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  letter-spacing: 4px;
+  font-weight: 700;
+  font-size: 20px;
+
+  text-align: center;
+  user-select: none;
+}
+
+/* =========================
+   POPUP MENU (NEAR CURSOR)
+========================= */
+.treatment-popup {
+  position: fixed; /* ✅ follows cursor */
+  z-index: 9999;
+  width: 200px;
+  max-width: 240px;
+
+  background: rgba(18, 18, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+
+  padding: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+}
+
+.popup-title {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 4px 6px 10px;
+}
+
+/* =========================
+   POPUP BUTTONS
+========================= */
+.popup-btn {
+  width: 100%;
   display: flex;
   align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  margin-bottom: 8px;
+
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+
+  cursor: pointer;
+  font-size: 14px;
+  letter-spacing: 0.6px;
+
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.popup-btn:last-child {
+  margin-bottom: 0;
+}
+
+.popup-btn:hover {
+  background: rgba(255, 209, 102, 0.22); /* warm accent */
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+}
+
+.popup-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.popup-icon {
+  font-size: 18px;
+  line-height: 1;
+  width: 22px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  letter-spacing: 3px;
-  font-weight: 600;
-  color: #fff;
 }
 
-/* THREE.JS CONTAINER — NEVER HIDE IT */
-.three-mount {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 90%;
-  border-radius: 30px;
-  overflow: hidden;
-  z-index: 2;
+/* Prevent text selection */
+.popup-title,
+.popup-btn {
+  user-select: none;
 }
 
-/* Hover-Sphere Info */
+/* =========================
+   RESPONSIVE SAFETY
+========================= */
+@media (max-width: 900px) {
+  .three-mount,
+  .simulation-holder {
+    min-height: 360px;
+  }
 
-.tooltip {
-  position: absolute;
-  padding: 8px 10px;
-  background: rgba(20, 20, 20, 0.9);
-  color: #fff;
-  font-size: 12px;
-  border-radius: 6px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  z-index: 10;
-  white-space: nowrap;
-  box-shadow: 0 0 10px rgba(245, 135, 39, 0.4);
+  .center-box {
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+
+  .treatment-popup {
+    width: 180px;
+  }
 }
+
